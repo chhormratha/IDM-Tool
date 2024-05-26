@@ -1,4 +1,4 @@
-@set iasver=1.2
+@set iasver=1.3
 @setlocal DisableDelayedExpansion
 @echo off
 
@@ -371,6 +371,7 @@ if %_freeze%==1 (set frz=1&goto :_activate)
 
 :MainMenu
 
+color e
 cls
 title  IDM Tool - by CHHORM RATHA v%iasver%
 if not defined terminal mode 75, 28
@@ -391,14 +392,77 @@ choice /C:120 /N
 set _erl=%errorlevel%
 
 if %_erl%==3 exit /b
-if %_erl%==2 start https://www.internetdownloadmanager.com/download.html & goto MainMenu
+if %_erl%==2 goto _download_IDM
 if %_erl%==1 (set frz=0&goto :_activate)
 goto :MainMenu
 
 ::========================================================================================================================================
 
+:_download_IDM
+color e
+setlocal
+:: Define variables
+set "idmPageUrl=https://www.internetdownloadmanager.com/download.html"
+set "installerPath=%USERPROFILE%\Downloads\idman_installer.exe"
+cls
+echo.
+echo    Retrieving the latest IDM download URL...
+echo.
+
+:: Use PowerShell to get the latest IDM download URL
+for /f "tokens=*" %%i in ('powershell -NoProfile -Command "try { $htmlContent = Invoke-WebRequest -Uri '%idmPageUrl%' -UseBasicParsing; $downloadLink = ($htmlContent.Links | Where-Object { $_.href -like '*.exe' } | Select-Object -First 1 -ExpandProperty href); if ($downloadLink) { $downloadLink } else { throw 'Failed to retrieve the IDM download URL.' } } catch { throw $_.Exception.Message }"') do set "idmUrl=%%i"
+
+:: Check if the URL was found
+if "%idmUrl%"=="" (
+    echo Failed to retrieve the IDM download URL.
+    exit /b 1
+)
+
+echo    Downloading IDM from: %idmUrl%
+cls
+echo.
+echo    Downloading IDM ... !!!!
+echo.
+:: Download the IDM installer
+powershell -NoProfile -Command "$webClient = New-Object System.Net.WebClient; $webClient.DownloadFile('%idmUrl%', '%installerPath%'); if (-not (Test-Path -Path '%installerPath%')) { throw 'Failed to download the IDM installer.' }"
+
+:: Check if the download was successful
+if not exist "%installerPath%" (
+    echo Failed to download the IDM installer.
+    exit /b 1
+)
+cls
+echo.
+echo    Running the IDM installer...
+echo.
+
+:: Run the IDM installer silently
+"%installerPath%" /S
+
+:: Check if IDM was installed
+if %ERRORLEVEL% neq 0 (
+    echo IDM installation failed.
+    exit /b 1
+)
+cls
+echo.
+echo Cleaning up...
+echo.
+
+:: Clean up the installer file after installation
+del "%installerPath%"
+
+echo IDM installation complete.
+echo.
+endlocal
+goto :MainMenu
+
+
+::========================================================================================================================================
+
 :_reset
 
+color e
 cls
 if not %HKCUsync%==1 (
 if not defined terminal mode 153, 35
@@ -488,6 +552,7 @@ exit /b
 
 :_activate
 
+color e
 cls
 echo:
 if not exist "%IDMan%" (
