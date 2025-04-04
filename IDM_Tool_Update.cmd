@@ -1,6 +1,20 @@
-@set iasver=1.3
+@set iasver=1.2
 @setlocal DisableDelayedExpansion
 @echo off
+
+
+
+::============================================================================
+::
+::   IDM Activation Script (IAS)
+::
+::   Homepages: https://github.com/WindowsAddict/IDM-Activation-Script
+::              https://massgrave.dev/idm-activation-script
+::
+::       Email: windowsaddict@protonmail.com
+::
+::============================================================================
+
 
 
 ::  To activate, run the script with "/act" parameter or change 0 to 1 in below line
@@ -59,6 +73,9 @@ echo:
 echo Null service is not running, script may crash...
 echo:
 echo:
+echo Help - %mas%idm-activation-script.html#Troubleshoot
+echo:
+echo:
 ping 127.0.0.1 -n 10
 )
 cls
@@ -80,7 +97,7 @@ popd
 
 cls
 color 07
-title  IDM Tool - by CHHORM RATHA v%iasver%
+title  IDM Activation Script %iasver%
 
 set _args=
 set _elev=
@@ -197,6 +214,7 @@ echo:
 echo PowerShell is not working. Aborting...
 echo If you have applied restrictions on Powershell then undo those changes.
 echo:
+echo Check this page for help. %mas%idm-activation-script.html#Troubleshoot
 goto done2
 )
 
@@ -259,24 +277,24 @@ if not [%%#]==[] (echo "%%#" | find "127.69" %nul1% && (echo "%%#" | find "127.6
 if defined old (
 echo ________________________________________________
 %eline%
-echo You are running outdated version IDM Tool v%iasver%
+echo You are running outdated version IAS %iasver%
 echo ________________________________________________
 echo:
 if not %_unattended%==1 (
-echo [1] Get Latest IDM Tool
+echo [1] Get Latest IAS
 echo [0] Continue Anyway
 echo:
 call :_color %_Green% "Enter a menu option in the Keyboard [1,0] :"
 choice /C:10 /N
 if !errorlevel!==2 rem
-if !errorlevel!==1 rem
+if !errorlevel!==1 (start https://github.com/WindowsAddict/IDM-Activation-Script & start %mas%/idm-activation-script & exit /b)
 )
 )
 
 ::========================================================================================================================================
 
 cls
-title  IDM Tool - by CHHORM RATHA v%iasver%
+title  IDM Activation Script %iasver%
 
 echo:
 echo Initializing...
@@ -289,6 +307,7 @@ echo Initializing...
 echo:
 echo WMI is not working. Aborting...
 echo:
+echo Check this page for help. %mas%idm-activation-script.html#Troubleshoot
 goto done2
 )
 
@@ -307,6 +326,7 @@ echo:
 echo [%_sid%]
 echo User Account SID not found. Aborting...
 echo:
+echo Check this page for help. %mas%idm-activation-script.html#Troubleshoot
 goto done2
 )
 
@@ -358,6 +378,7 @@ set "idmcheck=tasklist /fi "imagename eq idman.exe" | findstr /i "idman.exe" %nu
 %eline%
 echo Failed to write in %CLSID2%
 echo:
+echo Check this page for help. %mas%idm-activation-script.html#Troubleshoot
 goto done2
 )
 
@@ -371,98 +392,42 @@ if %_freeze%==1 (set frz=1&goto :_activate)
 
 :MainMenu
 
-color e
 cls
-title  IDM Tool - by CHHORM RATHA v%iasver%
+title  IDM Activation Script %iasver%
 if not defined terminal mode 75, 28
 
 echo:
-echo:                     IDM Tool - by CHHORM RATHA
-echo:                    Activate All Version of IDM
-echo:                      Can update IDM directly
+echo:
+echo:
+echo:
+echo:
+echo:                This script is NOT working with latest IDM.     
 echo:            ___________________________________________________ 
 echo:                                                               
-echo:               [1] Activate                                            
-echo:               [2] Download IDM
+echo:               [1] Freeze Trial
+echo:               [2] Activate
+echo:               [3] Reset Activation / Trial
+echo:               _____________________________________________   
+echo:                                                               
+echo:               [4] Download IDM
 echo:               [0] Exit
 echo:            ___________________________________________________
 echo:         
-call :_color2 %_White% "             " %_Green% "Enter a menu option in the Keyboard [1,2,0]"
-choice /C:120 /N
+call :_color2 %_White% "             " %_Green% "Enter a menu option in the Keyboard [1,2,3,4,5,0]"
+choice /C:123450 /N
 set _erl=%errorlevel%
 
-if %_erl%==3 exit /b
-if %_erl%==2 goto _download_IDM
-if %_erl%==1 (set frz=0&goto :_activate)
+if %_erl%==5 exit /b
+if %_erl%==4 start https://www.internetdownloadmanager.com/download.html & goto MainMenu
+if %_erl%==3 goto _reset
+if %_erl%==2 (set frz=0&goto :_activate)
+if %_erl%==1 (set frz=1&goto :_activate)
 goto :MainMenu
-
-::========================================================================================================================================
-
-:_download_IDM
-color e
-setlocal
-:: Define variables
-set "idmPageUrl=https://www.internetdownloadmanager.com/download.html"
-set "installerPath=%USERPROFILE%\Downloads\idman_installer.exe"
-cls
-echo.
-echo    Retrieving the latest IDM download URL...
-echo.
-
-:: Use PowerShell to get the latest IDM download URL
-for /f "tokens=*" %%i in ('powershell -NoProfile -Command "try { $htmlContent = Invoke-WebRequest -Uri '%idmPageUrl%' -UseBasicParsing; $downloadLink = ($htmlContent.Links | Where-Object { $_.href -like '*.exe' } | Select-Object -First 1 -ExpandProperty href); if ($downloadLink) { $downloadLink } else { throw 'Failed to retrieve the IDM download URL.' } } catch { throw $_.Exception.Message }"') do set "idmUrl=%%i"
-
-:: Check if the URL was found
-if "%idmUrl%"=="" (
-    echo Failed to retrieve the IDM download URL.
-    exit /b 1
-)
-
-echo    Downloading IDM from: %idmUrl%
-cls
-echo.
-echo    Downloading IDM ... !!!!
-echo.
-:: Download the IDM installer
-powershell -NoProfile -Command "$webClient = New-Object System.Net.WebClient; $webClient.DownloadFile('%idmUrl%', '%installerPath%'); if (-not (Test-Path -Path '%installerPath%')) { throw 'Failed to download the IDM installer.' }"
-
-:: Check if the download was successful
-if not exist "%installerPath%" (
-    echo Failed to download the IDM installer.
-    exit /b 1
-)
-cls
-echo.
-echo    Running the IDM installer...
-echo.
-
-:: Run the IDM installer silently
-"%installerPath%" /S
-
-:: Check if IDM was installed
-if %ERRORLEVEL% neq 0 (
-    echo IDM installation failed.
-    exit /b 1
-)
-cls
-echo.
-echo Cleaning up...
-echo.
-
-:: Clean up the installer file after installation
-del "%installerPath%"
-
-echo IDM installation complete.
-echo.
-endlocal
-goto :MainMenu
-
 
 ::========================================================================================================================================
 
 :_reset
 
-color e
 cls
 if not %HKCUsync%==1 (
 if not defined terminal mode 153, 35
@@ -552,8 +517,28 @@ exit /b
 
 :_activate
 
-color e
 cls
+if not %HKCUsync%==1 (
+if not defined terminal mode 153, 35
+) else (
+if not defined terminal mode 113, 35
+)
+if not defined terminal %psc% "&%_buf%" %nul%
+
+if %frz%==0 if %_unattended%==0 (
+echo:
+echo %line%
+echo:
+echo      Activation is not working for some users and IDM may show fake serial nag screen.
+echo:
+call :_color2 %_White% "     " %_Green% "Its recommended to use Freeze Trial option instead."
+echo %line%
+echo:
+choice /C:19 /N /M ">    [1] Go Back [9] Activate : "
+if !errorlevel!==1 goto :MainMenu
+cls
+)
+
 echo:
 if not exist "%IDMan%" (
 call :_color %Red% "IDM [Internet Download Manager] is not Installed."
@@ -603,6 +588,9 @@ if %frz%==0 call :register_IDM
 call :download_files
 if not defined _fileexist (
 %eline%
+echo Error: Unable to download files with IDM.
+echo:
+echo Help: %mas%idm-activation-script.html#Troubleshoot
 goto :done
 )
 
@@ -612,9 +600,6 @@ echo:
 echo %line%
 echo:
 if %frz%==0 (
-cls
-echo:
-echo:
 call :_color %Green% "The IDM Activation process has been completed."
 echo:
 call :_color %Gray% "If the fake serial screen appears, use the Freeze Trial option instead."
@@ -669,26 +654,27 @@ echo:
 echo Applying registration details...
 echo:
 
-::random key
-for /f "delims=" %%a in ('%psc% "$key = -join ((Get-Random -Count  20 -InputObject ([char[]]('ABCDEFGHIGKLMNOPQRSTUVWXYZ0123456789'))));$key = ($key.Substring(0,  5) + '-' + $key.Substring(5,  5) + '-' + $key.Substring(10,  5) + '-' + $key.Substring(15,  5) + $key.Substring(20));Write-Output $key" %nul6%') do (set key=%%a)
+set /a fname = %random% %% 9999 + 1000
+set /a lname = %random% %% 9999 + 1000
+set email=%fname%.%lname%@tonec.com
 
-set "reg=HKCU\SOFTWARE\DownloadManager /v FName /t REG_SZ /d "CHHORM"" & call :_rcont
-set "reg=HKCU\SOFTWARE\DownloadManager /v LName /t REG_SZ /d "RATHA"" & call :_rcont
-set "reg=HKCU\SOFTWARE\DownloadManager /v Email /t REG_SZ /d "rathabuy4pal@gmail.com"" & call :_rcont
+for /f "delims=" %%a in ('%psc% "$key = -join ((Get-Random -Count  20 -InputObject ([char[]]('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'))));$key = ($key.Substring(0,  5) + '-' + $key.Substring(5,  5) + '-' + $key.Substring(10,  5) + '-' + $key.Substring(15,  5) + $key.Substring(20));Write-Output $key" %nul6%') do (set key=%%a)
+
+set "reg=HKCU\SOFTWARE\DownloadManager /v FName /t REG_SZ /d "%fname%"" & call :_rcont
+set "reg=HKCU\SOFTWARE\DownloadManager /v LName /t REG_SZ /d "%lname%"" & call :_rcont
+set "reg=HKCU\SOFTWARE\DownloadManager /v Email /t REG_SZ /d "%email%"" & call :_rcont
 set "reg=HKCU\SOFTWARE\DownloadManager /v Serial /t REG_SZ /d "%key%"" & call :_rcont
 
 if not %HKCUsync%==1 (
-set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v FName /t REG_SZ /d "CHHORM"" & call :_rcont
-set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v LName /t REG_SZ /d "RATHA"" & call :_rcont
-set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v Email /t REG_SZ /d "rathabuy4pal@gmail.com"" & call :_rcont
+set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v FName /t REG_SZ /d "%fname%"" & call :_rcont
+set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v LName /t REG_SZ /d "%lname%"" & call :_rcont
+set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v Email /t REG_SZ /d "%email%"" & call :_rcont
 set "reg=HKU\%_sid%\SOFTWARE\DownloadManager /v Serial /t REG_SZ /d "%key%"" & call :_rcont
 )
 exit /b
 
 :download_files
 
-cls
-echo:
 echo:
 echo Triggering a few downloads to create certain registry keys, please wait...
 echo:
