@@ -58,7 +58,7 @@ for /f "tokens=1,2,4 delims=. " %%a in ("!online_version!") do (
 
 set "downloadcode="
 set "downloadcode=!o_major!!o_minor!build!o_build!"
-set "downloadurl=https://mirror2.internetdownloadmanager.com/idman%downloadcode%.exe"
+set "downloadurl=https://mirror2.internetdownloadmanager.com/idman642build32.exe?v=lt&filename=idman642build32.exe"
 
 :: Check installed version
 cls
@@ -114,20 +114,17 @@ echo.
 echo %GREEN%  ======================================================
 echo %GREEN%    :                                                :
 echo %GREEN%    :  [1] Download Latest IDM Version               :
-echo %GREEN%    :  [2] Clean Previous IDM Registry Entries       :
-echo %GREEN%    :  [3] Activate Internet Download Manager        :
-echo %GREEN%    :  [4] Exit                                      :
+echo %GREEN%    :  [2] Activate Internet Download Manager        :
+echo %GREEN%    :  [3] Exit                                      :
 echo %GREEN%    :                                                :
 echo %GREEN%  ======================================================%RESET%
 echo.
-set "choice="
-set /p choice=" Choose an option (1-4): "
-if not defined choice goto :menu
+choice /c 1234 /n /m "Choose an option (1-4): "
 
-if "%choice%"=="1" call :DownloadLatestIDM & goto :menu
-if "%choice%"=="2" call :CleanRegistry & goto :menu
-if "%choice%"=="3" call :ActivateIDM & goto :menu
-if "%choice%"=="4" call :quit
+rem %errorlevel% will be 1 for '1', 2 for '2', etc.
+if %errorlevel%==1 call :DownloadLatestIDM & goto :menu
+if %errorlevel%==2 call :ActivateIDM & goto :menu
+if %errorlevel%==3 call :quit
 
 echo %RED% Invalid option. Please enter a number from 1 to 6.%RESET%
 timeout /t 2 >nul
