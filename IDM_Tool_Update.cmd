@@ -7,7 +7,7 @@ set iasver=2.2.1
 ::============================================================================
 
 mode con: cols=135 lines=40
-title IDM Activation Script  v%iasver%
+title IDM Activation Script  v%iasver% - Reprepare by CHHORM  RATHA
 
 :: Ensure Admin Privileges
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -61,6 +61,7 @@ set "downloadcode=!o_major!!o_minor!build!o_build!"
 set "downloadurl=https://mirror2.internetdownloadmanager.com/idman%downloadcode%.exe"
 
 :: Check installed version
+cls
 echo Checking installed version...
 set "installed="
 for /f "tokens=3" %%a in ('reg query "HKCU\Software\DownloadManager" /v idmvers 2^>nul') do set "installed=%%a"
@@ -115,22 +116,18 @@ echo %GREEN%    :                                                :
 echo %GREEN%    :  [1] Download Latest IDM Version               :
 echo %GREEN%    :  [2] Clean Previous IDM Registry Entries       :
 echo %GREEN%    :  [3] Activate Internet Download Manager        :
-echo %GREEN%    :  [4] Extra FileTypes Extensions                :
-echo %GREEN%    :  [5] Do Everything (3 + 4)                     :
-echo %GREEN%    :  [6] Exit                                      :
+echo %GREEN%    :  [4] Exit                                      :
 echo %GREEN%    :                                                :
 echo %GREEN%  ======================================================%RESET%
 echo.
 set "choice="
-set /p choice=" Choose an option (1-6): "
+set /p choice=" Choose an option (1-4): "
 if not defined choice goto :menu
 
 if "%choice%"=="1" call :DownloadLatestIDM & goto :menu
 if "%choice%"=="2" call :CleanRegistry & goto :menu
 if "%choice%"=="3" call :ActivateIDM & goto :menu
-if "%choice%"=="4" call :AddExtensions & goto :menu
-if "%choice%"=="5" call :DoEverything & goto :menu
-if "%choice%"=="6" call :quit
+if "%choice%"=="4" call :quit
 
 echo %RED% Invalid option. Please enter a number from 1 to 6.%RESET%
 timeout /t 2 >nul
